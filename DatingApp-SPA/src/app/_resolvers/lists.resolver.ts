@@ -11,9 +11,10 @@ import { PaginatedResult } from '../_models/pagination';
 @Injectable({
   providedIn: 'root'
 })
-export class MemberListResolver implements Resolve<PaginatedResult<User[]>> {
+export class ListsResolver implements Resolve<PaginatedResult<User[]>> {
   private pageNumber = 1;
   private pageSize = 5;
+  private likesParam = 'likers';
 
   constructor(
     private userService: UserService,
@@ -22,12 +23,14 @@ export class MemberListResolver implements Resolve<PaginatedResult<User[]>> {
   ) {}
 
   resolve(route: ActivatedRouteSnapshot): Observable<PaginatedResult<User[]>> {
-    return this.userService.getUsers(this.pageNumber, this.pageSize).pipe(
-      catchError(err => {
-        this.alertifyService.error('Problem retrieving data');
-        this.router.navigate(['/home']);
-        return of(null);
-      })
-    );
+    return this.userService
+      .getUsers(this.pageNumber, this.pageSize, null, this.likesParam)
+      .pipe(
+        catchError(err => {
+          this.alertifyService.error('Problem retrieving data');
+          this.router.navigate(['/home']);
+          return of(null);
+        })
+      );
   }
 }
