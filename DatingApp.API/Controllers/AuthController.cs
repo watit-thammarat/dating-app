@@ -41,12 +41,10 @@ namespace DatingApp.API.Controllers
             {
                 return BadRequest("Username already exists");
             }
-            var userToCreate = new User
-            {
-                Username = dto.UserName
-            };
-            var createdUser = await _repo.Register(userToCreate, dto.Password);
-            return StatusCode(201, createdUser);
+            var userToCreate = _mapper.Map<User>(dto);
+            var entry = await _repo.Register(userToCreate, dto.Password);
+            var vm = _mapper.Map<UserForDetailDto>(entry);
+            return CreatedAtRoute("GetUser", new { id = vm.Id }, vm);
         }
 
         [HttpPost("login")]
