@@ -1,6 +1,13 @@
-import { Component, OnInit, ViewChild, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  HostListener,
+  OnDestroy
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgForm } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
 import { User } from '../../_models/user';
 import { AlertifyService } from '../../_services/alertify.service';
@@ -12,9 +19,12 @@ import { AuthService } from '../../_services/auth.service';
   templateUrl: './member-edit.component.html',
   styleUrls: ['./member-edit.component.css']
 })
-export class MemberEditComponent implements OnInit {
+export class MemberEditComponent implements OnInit, OnDestroy {
   @ViewChild('editForm') editForm: NgForm;
   user: User;
+
+  photoUrl: string;
+  subscription: Subscription;
 
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any) {
@@ -34,6 +44,13 @@ export class MemberEditComponent implements OnInit {
     this.route.data.subscribe(data => {
       this.user = data['user'];
     });
+    this.subscription = this.authService.currentPhotoUrl.subscribe(photoUrl => {
+      this.photoUrl = photoUrl;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   updateUser() {
@@ -48,5 +65,9 @@ export class MemberEditComponent implements OnInit {
           this.alertify.error(err);
         }
       );
+  }
+
+  removePhoto(id: number) {
+    this.user.photos = this.user.photos.filter(p => p.id !== id);
   }
 }
