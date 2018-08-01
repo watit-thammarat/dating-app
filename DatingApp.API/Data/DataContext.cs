@@ -10,6 +10,7 @@ namespace DatingApp.API.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Photo> Photos { get; set; }
         public DbSet<Like> Likes { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
@@ -30,6 +31,18 @@ namespace DatingApp.API.Data
                 .HasOne(l => l.Likee)
                 .WithMany(l => l.Likers)
                 .HasForeignKey(l => l.LikeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Sender)
+                .WithMany(u => u.MessagesSent)
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Recipient)
+                .WithMany(u => u.MessagesReceived)
+                .HasForeignKey(m => m.RecipientId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

@@ -38,6 +38,47 @@ namespace DatingApp.API.Data
             return await _context.Photos.FirstOrDefaultAsync(p => p.UserId == userId && p.IsMain);
         }
 
+        public async Task<Message> GetMessage(int id)
+        {
+            return await _context.Messages.FirstOrDefaultAsync(m => m.Id == id);
+        }
+
+        public async Task<PagedList<Message>> GetMessagesForUser(MessageParams messageParams)
+        {
+            var query = _context.Messages
+                .Include(m => m.Sender).ThenInclude(u => u.Photos)
+                .Include(m => m.Recipient).ThenInclude(u => u.Photos)
+                .AsQueryable();
+
+            switch (messageParams.MessageContainer)
+            {
+                case "Inbox":
+                    query = query.Where(m => m.RecipientId == messageParams.UserId && !m.RecipientDeleted);
+                    break;
+                case "Outbox":
+                    query = query.Where(m => m.SenderId == messageParams.UserId && !m.SenderDeleted);
+                    break;
+                case "Unread":
+                    query = query.Where(m => m.RecipientId == messageParams.UserId && !m.RecipientDeleted && !m.IsRead);
+                    break;
+                default:
+                    break;
+            }
+            query = query.OrderByDescending(m => m.MessageSent);
+            return await PagedList<Message>.CreateAsync(query, messageParams.PageNumber, messageParams.PageSize);
+        }
+
+        public async Task<IEnumerable<Message>> GetMessageThread(int userId, int recipientId)
+        {
+            var entries = await _context.Messages
+                .Include(m => m.Sender).ThenInclude(u => u.Photos)
+                .Include(m => m.Recipient).ThenInclude(u => u.Photos)
+                .Where(m => (m.SenderId == userId && !m.SenderDeleted && m.RecipientId == recipientId) || (m.SenderId == recipientId && !m.RecipientDeleted && m.RecipientId == userId))
+                .OrderByDescending(m => m.MessageSent)
+                .ToListAsync();
+            return entries;
+        }
+
         public async Task<Photo> GetPhoto(int id)
         {
             var photo = await _context.Photos.FirstOrDefaultAsync(p => p.Id == id);

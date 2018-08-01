@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { User } from '../_models/user';
 import { PaginatedResult } from '../_models/pagination';
+import { Message } from '../_models/message';
 
 @Injectable({
   providedIn: 'root'
@@ -23,10 +24,10 @@ export class UserService {
   ): Observable<PaginatedResult<User[]>> {
     const data = new PaginatedResult<User[]>();
     let params = new HttpParams();
-    if (pageNumber != null) {
+    if (pageNumber !== null) {
       params = params.append('pageNumber', pageNumber.toString());
     }
-    if (pageSize != null) {
+    if (pageSize !== null) {
       params = params.append('pageSize', pageSize.toString());
     }
     if (userParams) {
@@ -72,5 +73,54 @@ export class UserService {
 
   sendLike(id: number, recipient: number) {
     return this.http.post(`${this.baseUrl}/${id}/like/${recipient}`, {});
+  }
+
+  getMessageThead(id: number, recipientId: number) {
+    const url = `${this.baseUrl}/${id}/messages/thread/${recipientId}`;
+    return this.http.get<Message[]>(url);
+  }
+
+  getMessages(
+    id: number,
+    pageNumber?: number,
+    pageSize?: number,
+    messageContainr?: string
+  ) {
+    const data = new PaginatedResult<Message[]>();
+    let params = new HttpParams();
+    if (pageNumber !== null) {
+      params = params.append('pageNumber', pageNumber.toString());
+    }
+    if (pageSize !== null) {
+      params = params.append('pageSize', pageSize.toString());
+    }
+    if (messageContainr !== null) {
+      params = params.append('messageContainer', messageContainr);
+    }
+    const url = `${this.baseUrl}/${id}/messages`;
+    return this.http.get<Message[]>(url, { observe: 'response', params }).pipe(
+      map(res => {
+        data.result = res.body;
+        if (res.headers.get('Pagination')) {
+          data.pagination = JSON.parse(res.headers.get('Pagination'));
+        }
+        return data;
+      })
+    );
+  }
+
+  sendMessage(id: number, message: Message) {
+    const url = `${this.baseUrl}/${id}/messages`;
+    return this.http.post<Message>(url, message);
+  }
+
+  deleteMessage(userId: number, id: number) {
+    const url = `${this.baseUrl}/${userId}/messages/${id}`;
+    return this.http.post(url, {});
+  }
+
+  markAsRead(userId: number, id: number) {
+    const url = `${this.baseUrl}/${userId}/messages/${id}/read`;
+    return this.http.post(url, {}).subscribe();
   }
 }

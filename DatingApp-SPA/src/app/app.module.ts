@@ -1,4 +1,3 @@
-import { PhotoEditorComponent } from './members/photo-editor/photo-editor.component';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
@@ -28,6 +27,8 @@ import { MemberListComponent } from './members/member-list/member-list.component
 import { MemberCardComponent } from './members/member-card/member-card.component';
 import { MemberDetailComponent } from './members/member-detail/member-detail.component';
 import { MemberEditComponent } from './members/member-edit/member-edit.component';
+import { MemberMessagesComponent } from './members/member-messages/member-messages.component';
+import { PhotoEditorComponent } from './members/photo-editor/photo-editor.component';
 
 const tokenGetter = () => {
   return localStorage.getItem('token');
@@ -46,7 +47,8 @@ const tokenGetter = () => {
     MemberDetailComponent,
     MemberEditComponent,
     PhotoEditorComponent,
-    TimeAgoPipe
+    TimeAgoPipe,
+    MemberMessagesComponent
   ],
   imports: [
     BrowserModule,
